@@ -2,36 +2,57 @@ import {isValidCPF, isValidCNPJ} from '../utils/validations.js';
 
 function dataValidationMiddleware(req, res, next){
 
-  const { ids } = req.body;
+  let { data } = req.body
 
-  if (!Array.isArray(ids) || ids.length === 0) {
-    return res.status(400).json({
-      status: 'falha',
-      motivoErro: 'O corpo da requisição deve conter um array de CPFs/CNPJs',
-    });
+  if(!data || data  == ""){
+      return res.status(400).json({ status: 'falha', motivoErro: 'O corpo da requisição deve conter um array de números ou um número de documento.' });
   }
 
-  let invalidIds = [];
-
-  for (const id of ids) {
-    if (!isValidCPF(id) && !isValidCNPJ(id)) {
-      invalidIds.push(id);
-    }
+    // Converte entrada string ou número para array
+  if (typeof data === 'string' || typeof data === 'number') {
+      data = [data];
   }
 
-  let validationResults = {};
+    // Verifica se entrada é um array
+  if (!Array.isArray(data)) {
+    return res.status(400).json({ status: 'falha', motivoErro: 'O corpo da requisição deve conter um array, string ou número de documentos.' });
+  }
 
-  for (const id of ids) {
+    // todas as entradas para Str
+  data = data.map(String);
+
+  let invalidData = {};
+  let validData = {};
+
+  for (const id of data) {
+
     if (isValidCPF(id)) {
-      validationResults[id] = { status: 'Válido', tipo: 'CPF' };
+      validData[id] = { tipo: 'CPF', status: "válido" };
     } else if (isValidCNPJ(id)) {
-      validationResults[id] = { status: 'Válido', tipo: 'CNPJ' };
+      validData[id] = { tipo: 'CNPJ', status: "válido" };
     } else {
-      validationResults[id] = { status: 'Inválido', motivoErro: 'Número de CPF/CNPJ inválido' };
+      if (id.length === 11) { // CPF
+        invalidData[id] = {
+          status: "Falha",
+          motivoErro: 'CPF inválido'
+        };
+      } else if (id.length === 14) { // CNPJ
+        invalidData[id] = {
+          tipo: "CNPJ",
+          status: "Falha",
+          motivoErro: 'CNPJ inválido'
+        };
+      } else {
+        invalidData[id] = {
+          status: "inválido",
+          motivoErro: 'Número de CPF/CNPJ inválido'
+        };
+      }
     }
   }
 
-  req.validationResults = validationResults;
+  req.invalidData = invalidData;
+  req.validData = validData;
   next();
 }
 
