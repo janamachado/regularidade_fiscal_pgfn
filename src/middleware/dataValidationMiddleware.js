@@ -1,25 +1,30 @@
 import {isValidCPF, isValidCNPJ} from '../utils/validations.js';
+import { removeMask } from '../utils/removeMask.js';
+
 
 function dataValidationMiddleware(req, res, next){
 
   let { data } = req.body
 
+  console.log("Entrada: ", data)
+
   if(!data || data  == ""){
       return res.status(400).json({ status: 'falha', motivoErro: 'O corpo da requisição deve conter um array de números ou um número de documento.' });
   }
 
-    // Converte entrada string ou número para array
+    // converte entrada str ou number para array
   if (typeof data === 'string' || typeof data === 'number') {
       data = [data];
   }
 
-    // Verifica se entrada é um array
+    // verifica se entrada é um array
   if (!Array.isArray(data)) {
     return res.status(400).json({ status: 'falha', motivoErro: 'O corpo da requisição deve conter um array, string ou número de documentos.' });
   }
 
-    // todas as entradas para Str
-  data = data.map(String);
+    // converte todas as entradas para str e sem máscara
+  data = data.map(String).map(removeMask);
+  data = Array.from(new Set(data));   // mantém itens únicos
 
   let invalidData = {};
   let validData = {};
@@ -27,29 +32,43 @@ function dataValidationMiddleware(req, res, next){
   for (const id of data) {
 
     if (isValidCPF(id)) {
-      validData[id] = { tipo: 'CPF', status: "válido" };
+
+      validData[id] = { tipo: 'CPF' };
+
     } else if (isValidCNPJ(id)) {
-      validData[id] = { tipo: 'CNPJ', status: "válido" };
+
+      validData[id] = { tipo: 'CNPJ' };
+
     } else {
-      if (id.length === 11) { // CPF
+
+      if (id.length === 11) {   // CPF
+        
         invalidData[id] = {
+          tipo: "CPF",
           status: "Falha",
+          certidao: null,
           motivoErro: 'CPF inválido'
         };
-      } else if (id.length === 14) { // CNPJ
+      } else if (id.length === 14) {  // CNPJ
         invalidData[id] = {
           tipo: "CNPJ",
           status: "Falha",
+          certidao: null,
           motivoErro: 'CNPJ inválido'
         };
       } else {
         invalidData[id] = {
-          status: "inválido",
-          motivoErro: 'Número de CPF/CNPJ inválido'
+          status: "Falha",
+          certidao: null,
+          motivoErro: 'Número não é CNPJ ou CPF'
         };
       }
     }
   }
+
+  console.log("Dados válidos para scraping: ", validData)
+  console.log("Dados inválidos para scraping: ", invalidData)
+
 
   req.invalidData = invalidData;
   req.validData = validData;

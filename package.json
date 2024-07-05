@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node src/server.js",
-    "dev": "node --watch --no-warnings src/server.js"
+    "dev": "node --watch --no-warnings --env-file=.env src/server.js"
   },
   "keywords": [],
   "author": "",
@@ -15,6 +15,8 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.19.2",
-    "puppeteer": "^22.12.1"
+    "puppeteer": "^22.12.1",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2"
   }
 }

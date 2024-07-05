@@ -11,7 +11,7 @@ app.use(bodyParser.json());
 
 app.post('/validate', dataValidationMiddleware, getCertification, (req, res) => {
 
-    res.json(req.validationResults);
+  // res.json(req.validationResults);
 });
 
 app.listen(PORT, () => {
