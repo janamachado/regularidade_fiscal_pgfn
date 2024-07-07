@@ -1,12 +1,9 @@
 import {isValidCPF, isValidCNPJ} from '../utils/validations.js';
 import { removeMask } from '../utils/removeMask.js';
 
-
-function dataValidationMiddleware(req, res, next){
+function dataCertificationValidationMiddleware(req, res, next){
 
   let { data } = req.body
-
-  console.log("Entrada: ", data)
 
   if(!data || data  == ""){
       return res.status(400).json({ status: 'falha', motivoErro: 'O corpo da requisição deve conter um array de números ou um número de documento.' });
@@ -30,13 +27,11 @@ function dataValidationMiddleware(req, res, next){
   let validData = {};
 
   for (const id of data) {
-
     if (isValidCPF(id)) {
 
       validData[id] = { tipo: 'CPF' };
 
     } else if (isValidCNPJ(id)) {
-
       validData[id] = { tipo: 'CNPJ' };
 
     } else {
@@ -44,14 +39,12 @@ function dataValidationMiddleware(req, res, next){
       if (id.length === 11) {   // CPF
         
         invalidData[id] = {
-          tipo: "CPF",
           status: "Falha",
           certidao: null,
           motivoErro: 'CPF inválido'
         };
       } else if (id.length === 14) {  // CNPJ
         invalidData[id] = {
-          tipo: "CNPJ",
           status: "Falha",
           certidao: null,
           motivoErro: 'CNPJ inválido'
@@ -66,13 +59,9 @@ function dataValidationMiddleware(req, res, next){
     }
   }
 
-  console.log("Dados válidos para scraping: ", validData)
-  console.log("Dados inválidos para scraping: ", invalidData)
-
-
   req.invalidData = invalidData;
   req.validData = validData;
   next();
 }
 
-export default dataValidationMiddleware
+export default dataCertificationValidationMiddleware

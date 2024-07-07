@@ -1,18 +1,21 @@
 import express from 'express'
 import bodyParser from 'body-parser';
 
-import dataValidationMiddleware from'./middleware/dataValidationMiddleware.js';
-import { getCertification } from './controllers/dataController.js';
+import dataCertificationValidationMiddleware from'./middleware/dataCertificationValidationMiddleware.js';
+import { getCertificationController } from './controllers/dataController.js';
+import dataValidateCertificationMiddleware from './middleware/dataValidateCertificationMiddleware.js';
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT;
 
 app.use(bodyParser.json());
 
-app.post('/validate', dataValidationMiddleware, getCertification, (req, res) => {
+app.use('/downloads', express.static('downloads'));
 
-  // res.json(req.validationResults);
-});
+app.post('/certification', dataCertificationValidationMiddleware, getCertificationController, (req, res) => {});
+
+app.post('/validate', dataValidateCertificationMiddleware, (req, res)=>{})
+
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
