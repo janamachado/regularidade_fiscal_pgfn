@@ -1,4 +1,4 @@
-import {isValidCPF, isValidCNPJ} from '../utils/validations.js';
+import {isValidCPF, isValidCNPJ} from '../utils/routines.js';
 
 function dataValidateCertificationMiddleware(req, res, next){
   const { numero, codigoControle, dataEmissao, horaEmissao, tipoCertidao } = req.body

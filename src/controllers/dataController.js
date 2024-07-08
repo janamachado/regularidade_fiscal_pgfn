@@ -1,30 +1,47 @@
-import getCPFCertificate from '../services/cpfAccessPGFNService.js';
-import getCNPJCertificate from '../services/cnpjAccessPGFNService.js';
+import getCPFCertificateService from '../services/cpfAccessPGFNService.js';
+import getCNPJCertificateService from '../services/cnpjAccessPGFNService.js';
 
 export const getCertificationController = async (req, res) => {
     let { validData, invalidData } = req;
 
     let finalResponse = {};
 
-    // Processar os IDs válidos um por um
+    // const scrapingResults = await Promise.all(validIds.map(async (id) => {
+    //     let result;
+    //     if (validData[id]?.tipo === 'CPF') {
+    //         console.log(`[LOG INFO] - ${id}: Iniciando scraping.`);
+    //         result = await getCPFCertificate(id);
+    //     } else if (validData[id]?.tipo === 'CNPJ') {
+    //         console.log(`[LOG INFO] - ${id}: Iniciando scraping.`);
+    //         result = await getCNPJCertificate(id);
+    //     }
+    //     return { id, ...result };
+    // }));
+
+        // Executar scraping somente para dados válidos
     for (const id of Object.keys(validData)) {
         let result;
 
         if (validData[id]?.tipo === 'CPF') {
             console.log(`[LOG INFO] - ${id}: Iniciando scraping.`);
-            result = await getCPFCertificate(id);
+            result = await getCPFCertificateService(id);
+
         } else if (validData[id]?.tipo === 'CNPJ') {
             console.log(`[LOG INFO] - ${id}: Iniciando scraping.`);
-            result = await getCNPJCertificate(id);
+            result = await getCNPJCertificateService(id);
         }
 
         if (result.status) {
+            console.log(`[LOG INFO] - ${id}: Scraping finalizado com sucesso.`);
+
             finalResponse[id] = {
                 status: "Sucesso",
-                certidao: result.certidao || "url",
+                certidao: result.certidao || "Algum problema para encontrar a URL.",
                 motivoErro: null
             };
         } else {
+            console.log(`[LOG INFO] - ${id}: Scraping finalizado com falha.`);
+
             invalidData[id] = {
                 status: "Falha",
                 certidao: null,
@@ -33,7 +50,7 @@ export const getCertificationController = async (req, res) => {
         }
     }
 
-    // Adicionar dados inválidos no finalResponse
+    // Dados inválidos na resposta final
     Object.keys(invalidData).forEach(id => {
         finalResponse[id] = invalidData[id];
     });
@@ -94,82 +111,3 @@ export const getCertificationController = async (req, res) => {
 //     console.log("finalResponse", finalResponse);
 //     res.status(200).json(finalResponse);
 // };
-
-// ------------------------------------------------------------------------------------
-
-// import getCPFCertificate from '../services/cpfAccessPGFNService.js';
-// import getCNPJCertificate from '../services/cnpjAccessPGFNService.js';
-
-
-// export const getCertificationController = async (req, res) =>{
-
-//     let { validData, invalidData } = req;
-
-//     const scrapingResults = await Promise.all(Object.keys(validData).map(async (id) => {
-
-//         let result;
-
-//         if (validData[id]?.tipo === 'CPF') {
-
-//             console.log(`[LOG INFO] - ${id}: Iniciando scraping.`)
-//             result = await getCPFCertificate(id);
-
-//         } else if (validData[id]?.tipo === 'CNPJ') {
-
-//             console.log(`[LOG INFO] - ${id}: Iniciando scraping.`)
-//             result = await getCNPJCertificate(id);
-
-//         }
-//         return { id, ...result };
-//     }));
-
-//     let finalResponse = {};
-
-//     scrapingResults.forEach(result => {
-
-//         if(result.status){
-
-//             validData[result.id] = {
-//                 status: "Sucesso",
-//                 certidao: result.certidao || "url",
-//                 motivoErro: null
-//             };
-
-//         }else{
-//             console.log("invalidData1", invalidData)
-//             invalidData[result.id] = {
-//                 status: "Falha",
-//                 certidao: null,
-//                 motivoErro: result?.mensagem || "Não foi possível obter a certidão."
-//             }
-//         }
-//         console.log("invalidData", invalidData)
-//         console.log("validData", validData)
-//         console.log("invalidData", Object.keys(invalidData).length)
-//         console.log("validData", Object.keys(validData).length)
-
-//         if(Object.keys(invalidData).length > 0 && Object.keys(validData).length > 0){
-//             console.log("Entrei 1")
-//             finalResponse = {
-//                 ...invalidData,
-//                 ...validData
-//             }
-//         }
-//         if(Object.keys(invalidData).length > 0 && Object.keys(validData).length === 0){
-//             console.log("Entrei 2")
-//             finalResponse = {
-//                 ...invalidData
-//             }
-//         }
-//         if(Object.keys(invalidData).length === 0 && Object.keys(validData).length > 0){
-//             console.log("Entrei 3")
-//             finalResponse ={
-//                 ...validData
-//             }
-//         }
-//     });
-    
-//     console.log("finalResponse", finalResponse)
-//     res.status(200).json(finalResponse);
-// };
-    
