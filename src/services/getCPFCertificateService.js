@@ -14,7 +14,7 @@
     handleModalError,
     returnTableMessage,
     startDownload,
-    // queryReturn
+    queryReturn
 } from '../utils/routines.js';
 
  import puppeteer from "puppeteer-extra";
@@ -28,7 +28,7 @@
      
         // Início do Browser
     const browser = await puppeteer.launch({
-        headless: false,
+        headless: true,
         defaultViewport: null,
         args: ['--start-maximized']
     });
@@ -53,7 +53,14 @@
          });
  
              // Navegador
-         await page.goto(process.env.MAIN_URL, { waitUntil: 'networkidle0' });
+             try {
+                 await page.goto(process.env.MAIN_URL, { waitUntil: 'networkidle0' }, {delay: 6000});
+             } catch (error) {
+                console.error(`[LOG ERROR]: ${cpf}: ${error}`)
+                await page.reload();
+                await delay(3000)
+                await page.goto(process.env.MAIN_URL, { waitUntil: 'networkidle0' }, {delay: 6000});
+             }
  
          const modalIncompatibleBrowser = await page.$(selectors.modalCompatibleBrowser);
          if (modalIncompatibleBrowser) {
@@ -85,9 +92,10 @@
              // Início da consulta
          await page.keyboard.press('Enter');
          console.log(`[LOG INFO] - ${cpf}: Consulta enviada.`);
-         const queryResult = await queryReturn(browser, page, cpf);
+         await delay(5000)
+
          console.log(`[LOG INFO] - ${cpf}: Aguardando retorno da consulta.`);
-         await delay(3000);
+         const queryResult = await queryReturn(browser, page, cpf);
  
              // Processamentos da consulta
          if (queryResult === 'success') {

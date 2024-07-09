@@ -15,6 +15,7 @@ export const selectors = {
 	modalCompatibleBrowser: "body > modal-container > div.modal-dialog > div > app-modal > div.modal-header.navegador-nao-compativel > button",
 	modalOkBtn: '.ui-dialog-buttonset > button',
 	tableMessage: '#main-container > div > table > tbody > tr > td',
+	h3Table: '#main-container > div > table > tbody > tr > td > h3',
 	anchorCertification: '#FrmSelecao > a:nth-child(6)',
 	formSelecao: '#FrmSelecao',
 	
@@ -35,7 +36,8 @@ export async function handleModalError(browser, page, documentNumber) {
 	const errorMessage = await page.$eval(selectors.modalMessage, p => p.innerText.trim());
 	console.log(`[LOG ERROR] - ${documentNumber}: ${errorMessage}.`);
 
-	if (errorMessage === "CPF inválido" || errorMessage === "CPF não informado") {
+	if ((errorMessage === "CPF inválido" || errorMessage === "CPF não informado") ||
+	(errorMessage === "CNPJ inválido" || errorMessage === "CNPJ não informado")) {
 		await page.click(selectors.modalOkBtn, { delay: 2000 });
 		await page.focus(selectors.input, { delay: 500 });
 
@@ -51,7 +53,7 @@ export async function handleModalError(browser, page, documentNumber) {
 		await page.keyboard.press("Enter");
 
 		console.log(`[LOG INFO] - ${documentNumber}: Aguardando retorno da consulta.`);
-		const secondResult = await queryReturn(page);
+		const secondResult = await queryReturn(browser, page, documentNumber);
 		
 			// Processamentos da consulta
 		if (secondResult === 'success') {
@@ -115,14 +117,29 @@ export async function startDownload(browser, page, documentNumber) {
 		console.log(`[LOG INFO] - ${documentNumber}: Monitoramento do download iniciado.`);
 	
 		await page.click(selectors.anchorCertification, { delay: 2000 });
+
+		try {
+			await page.waitForSelector(selectors.tableMessage, { timeout: 5000 });
+			console.log(`[LOG INFO] - ${documentNumber}: Seletor encontrado.`);
+		} catch (error) {
+			console.log(`[LOG INFO] - ${documentNumber}: Seletor não encontrado, atualizando página para download.`);
+			await page.reload();
+			await delay(5000);
+		}
+
 		console.log(`[LOG INFO] - ${documentNumber}: Carregamento completo, iniciando download.`);
-	
-		await page.waitForSelector(selectors.tableMessage, { delay: 5000 });
 		await delay(8000);
 	
+		let isDownloaded = false;
+		try {
+			isDownloaded = await downloadQueryReturn(browser, page);
+		} catch (error) {
+			console.error(`[LOG ERROR]: ${documentNumber}: ${error}`)
+			await page.reload();
+			isDownloaded = await downloadQueryReturn(browser, page);
+		}
+		
 			// Retorno e tratamento do download
-		const isDownloaded = await downloadQueryReturn(browser, page);
-	
 		if (isDownloaded) {
 			console.log(`[LOG INFO] - ${documentNumber}: Certidão obtida com sucesso`);
 	
@@ -156,13 +173,14 @@ export async function startDownload(browser, page, documentNumber) {
 	// Manipulação de possíveis respostas da consulta
 export async function queryReturn(browser, page, documentNumber) {
 	try {
-		return Promise.race([
+		const result = Promise.race([
 			page.waitForSelector(selectors.formSelecao, { visible: true }).then(() => 'success'),
 			page.waitForSelector(selectors.modalMessage, { visible: true }).then(() => 'modalError'),
 			page.waitForFunction(
-				tableResult => document.querySelector(tableResult).innerText.includes("O número informado não consta"), { visible: true }, selectors.tableMessage
-			).then(() => 'resultError')
+            	tableResult => document.querySelector(tableResult).innerText.includes("Resultado da Consulta"), { visible: true }, selectors.tableMessage
+        	).then(()=> 'resultError')
 		]);
+		return result
 	} catch (error) {
 		console.error(`[LOG ERROR]: ${documentNumber}: ${error}`)
 		await browser.close()
@@ -197,6 +215,7 @@ export async function downloadQueryReturn(browser, page, documentNumber) {
 	}
 };
 
+	// Validação de CPF 
 export function isValidCPF(cpf) {
 	cpf = cpf.replace(/[^\d]+/g, '');
 	if (cpf.length !== 11) return false;
@@ -215,7 +234,8 @@ export function isValidCPF(cpf) {
 	if (remainder !== parseInt(cpf.substring(10, 11))) return false;
 	return true;
 };
-
+	
+	// Validação de CNPJ
 export function isValidCNPJ(cnpj) {
 	cnpj = cnpj.replace(/[^\d]+/g, '');
 	if (cnpj.length !== 14) return false;
@@ -244,11 +264,12 @@ export function isValidCNPJ(cnpj) {
 	if (result !== parseInt(digits.charAt(1))) return false;
 	return true;
 };
-
+	// Remoção de máscara do documento
 export function removeMask(number) {
 	return number.replace(/[^\d]/g, '');
 };
 
+	// Simulação de interação com mouse e scroll com navegador
 export const simulateHumanInteraction = async (page) => {
 	for (let i = 0; i < 10; i++) {
 		await page.mouse.move(Math.random() * 1000, Math.random() * 1000, {delay: 3000});
@@ -261,7 +282,16 @@ export const simulateHumanInteraction = async (page) => {
 	}
 };
 
+	// Se não existir, criar diretório
+function ensureDirectoryExistence(dirPath) {
+	if (!fs.existsSync(dirPath)) {
+	  fs.mkdirSync(dirPath, { recursive: true });
+	}
+};
+
+	// Monitoramente de download no path /downloads
 export function waitForDownload(downloadPath) {
+	ensureDirectoryExistence(downloadPath);
 	return new Promise((resolve, reject) => {
 		fs.watch(downloadPath, (eventType, filename) => {
 			if (eventType === 'rename' && filename) {

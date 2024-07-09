@@ -20,17 +20,15 @@ relacionada às respostas do navegador.
 import puppeteer from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import UserAgent from "user-agents";
-import path from 'path';
 
 puppeteer.use(StealthPlugin());
-
 
 const getCNPJCertificateService = async (cnpj) => {
     console.log(`[LOG INFO] - ${cnpj}: Inicializando scraping para ${cnpj} às ${new Date().toLocaleString()}`);
 
         // Início do Browser
     const browser = await puppeteer.launch({
-        headless: false,
+        headless: true,
         defaultViewport: null,
         args: ['--start-maximized']
     });
@@ -55,7 +53,14 @@ const getCNPJCertificateService = async (cnpj) => {
         });
 
             // Navegador
-        await page.goto(process.env.MAIN_URL, { waitUntil: 'networkidle0' });
+        try {
+            await page.goto(process.env.MAIN_URL, { waitUntil: 'networkidle0' }, {delay: 6000});
+        } catch (error) {
+           console.error(`[LOG ERROR]: ${cnpj}: ${error}`)
+           await page.reload();
+           await delay(3000)
+           await page.goto(process.env.MAIN_URL, { waitUntil: 'networkidle0' }, {delay: 6000});
+        }
 
         const modalIncompatibleBrowser = await page.$(selectors.modalCompatibleBrowser);
         if (modalIncompatibleBrowser) {
@@ -87,9 +92,10 @@ const getCNPJCertificateService = async (cnpj) => {
             // Início da consulta
         await page.keyboard.press('Enter');
         console.log(`[LOG INFO] - ${cnpj}: Consulta enviada.`);
+        await delay(5000)
+
+         console.log(`[LOG INFO] - ${cnpj}: Aguardando retorno da consulta.`);
         const queryResult = await queryReturn(browser, page, cnpj);
-        console.log(`[LOG INFO] - ${cnpj}: Aguardando retorno da consulta.`);
-        await delay(3000);
 
             // Processamentos da consulta
         if (queryResult === 'success') {
