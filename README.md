@@ -55,7 +55,6 @@ A resposta será um objeto onde cada chave é o número consultado e o valor é 
 Exemplo de Resposta:
 
 ```json
-
 {
   "1515": {
     "status": "Falha",
@@ -73,9 +72,9 @@ Exemplo de Resposta:
     "motivoErro": null
   },
   "98765432100": {
-    "status": "Sucesso",
-    "certidao": "http://localhost:3001/downloads/Certidao-98765432100.pdf",
-    "motivoErro": null
+    "status": "Falha",
+    "certidao": null,
+    "motivoErro": "Não foi possível realizar a consulta. Tente mais tarde."
   },
   "12378945600": {
     "status": "Sucesso",
@@ -87,13 +86,62 @@ Exemplo de Resposta:
 
 ### Mensagens de Erro
 
-    "Número não é CNPJ ou CPF" - Número recebido não é um documento válido
-    "CNPJ inválido" - Documento inválido
-    "CPF inválido" - Documento inválido
-    "Não foi possível obter a certidão." - Dificuldade para encontrar a certidão para esse documento.
-    "Não foi possível realizar a consulta. Tente mais tarde." - Dificuldade para encontrar a certidão para esse documento.
-    "O número informado não consta do cadastro CNPJ." - Documento não cadastrado no PGFN
-    "O número informado não consta do cadastro CPF." - Documento não cadastrado no PGFN
+  "Número não é CNPJ ou CPF" - Número recebido não é um documento válido
+  "CNPJ inválido" - Documento inválido
+  "CPF inválido" - Documento inválido
+  "Não foi possível obter a certidão." - Dificuldade para encontrar a certidão para esse documento.
+  "Não foi possível realizar a consulta. Tente mais tarde." - Dificuldade para encontrar a certidão para esse documento.
+  "O número informado não consta do cadastro CNPJ." - Documento não cadastrado no PGFN
+  "O número informado não consta do cadastro CPF." - Documento não cadastrado no PGFN
+
+# Endpoint: /authenticity
+
+## Método: POST
+
+### Descrição
+
+Este endpoint recebe os dados de uma certidão (CPF ou CNPJ, código de controle, data de emissão, hora de emissão e tipo de certidão) e retorna a autenticidade da certidão, se disponível.
+
+### Corpo da Requisição
+O corpo da requisição deve conter as seguintes chaves:
+
+numero (string): CPF ou CNPJ do solicitante
+codigoControle (string): Código de controle da certidão, no formato XXXX.XXXX.XXXX.XXXX
+dataEmissao (string): Data de emissão da certidão, no formato DD/MM/AAAA
+horaEmissao (string): Hora de emissão da certidão, no formato HH:MM:SS
+tipoCertidao (string): Tipo de certidão, podendo ser "Negativa", "Positiva com Efeitos de Negativa", ou "Positiva"
+
+#### Exemplos de Corpo da Requisição:
+```json
+{
+  "numero": "12345678900",
+  "codigoControle": "ABCD.EFGH.IJKL.MNOP",
+  "dataEmissao": "05/07/2024",
+  "horaEmissao": "23:38:11",
+  "tipoCertidao": "Negativa"
+}
+```
+
+#### Resposta de Sucesso:
+A resposta será um objeto com as chaves status, mensagem e certidao. Exemplo de Resposta:
+
+```json
+{
+  "status": "Sucesso",
+  "mensagem": "Certidão Negativa emitida em 05/07/2024, com validade até 01/01/2025.",
+  "certidao": "URL da certidão se disponível"
+}
+```
+
+#### Mensagens de Erro
+  "Código de controle inválido. Deve seguir o formato XXXX.XXXX.XXXX.XXXX."
+  "Data de emissão inválida. Deve estar no formato DD/MM/AAAA."
+  "Hora de emissão inválida. Deve estar no formato HH:MM:SS."
+  "Tipo de certidão inválido. As opções válidas são: Negativa, Positiva com Efeitos de Negativa, Positiva."
+  "Número não é CNPJ ou CPF."
+  "CPF inválido."
+  "CNPJ inválido."
+  "Não foi possível obter a certidão."
 
 ### Configuração e Execução
 #### Pré-requisitos

@@ -1,6 +1,16 @@
+/*  
+------------------------------------------------------------------------------------------
+Middleware - responsável pela validação dos dados de entrada, 
+ se todas as entradas forem inválidas retorna status code 400 e o motivo do erro.
+ se houverem dados de entrada válidos, envia os dados para o Controller seguir a execução.
+ Autora: Jana Machado
+ Data: 08/07/2024
+	------------------------------------------------------------------------------------------
+ */ 
+
 import { isValidCPF, isValidCNPJ, removeMask } from '../utils/routines.js';
 
-function dataCertificationValidationMiddleware(req, res, next){
+function validationGetCertificationMiddleware(req, res, next){
 
 	let { data } = req.body
 
@@ -64,4 +74,4 @@ function dataCertificationValidationMiddleware(req, res, next){
 	next();
 }
 
-export default dataCertificationValidationMiddleware
+export default validationGetCertificationMiddleware

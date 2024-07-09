@@ -1,5 +1,14 @@
-import getCPFCertificateService from '../services/cpfAccessPGFNService.js';
-import getCNPJCertificateService from '../services/cnpjAccessPGFNService.js';
+/* 
+------------------------------------------------------------------------------------------
+Controller - responsável pelo controle de execução dos Services e retorno das respostas 
+da requisição de acordo com seus resultados.
+ Autora: Jana Machado
+ Data: 08/07/2024
+ ------------------------------------------------------------------------------------------
+ */ 
+
+import getCPFCertificateService from '../services/getCPFCertificateService.js';
+import getCNPJCertificateService from '../services/getCNPJCertificateService.js';
 
 export const getCertificationController = async (req, res) => {
     let { validData, invalidData } = req;
