@@ -28,7 +28,7 @@
      
         // Início do Browser
     const browser = await puppeteer.launch({
-        headless: true,
+        headless: false,
         defaultViewport: null,
         args: ['--start-maximized']
     });

@@ -20,7 +20,7 @@ const getCNPJAuthenticityCertificateService = async (numero, codigoControle, dat
 
 	try {
 		const browser = await puppeteer.launch({
-			headless: false,
+			headless: true,
 			defaultViewport: null,
 			args: ['--start-maximized']
 		});
@@ -71,19 +71,19 @@ const getCNPJAuthenticityCertificateService = async (numero, codigoControle, dat
 		await page.type(selectors.input, numero, { delay: 100 });
 		await delay(2000)
 
-		console.log(`[LOG INFO] - ${numero}: Digitando Código de Controle ${codigoControle}.`);
+		console.log(`[LOG INFO] - ${numero}: Digitando Código de Controle.`);
 		await page.type(selectors.inputControleCertidao, codigoControle, { delay: 100 });
 		await delay(2000)
 
-		console.log(`[LOG INFO] - ${numero}: Digitando Data de Emissão ${dataEmissao}.`);
+		console.log(`[LOG INFO] - ${numero}: Digitando Data de Emissão.`);
 		await page.type(selectors.inputDataEmissao, dataEmissao, { delay: 100 });
 		await delay(2000)
 
-		console.log(`[LOG INFO] - ${numero}: Digitando Hora de Emissão ${horaEmissao}.`);
+		console.log(`[LOG INFO] - ${numero}: Digitando Hora de Emissão.`);
 		await page.type(selectors.inputHoraEmissao, horaEmissao, { delay: 100 });
 		await delay(2000)
 
-		console.log(`[LOG INFO] - ${numero}: Selecionando Tipo de Certidão ${tipoCertidao}.`);
+		console.log(`[LOG INFO] - ${numero}: Selecionando Tipo de Certidão.`);
 		await page.focus(selectors.selectTipoCertidao);
 		const optionValue = await page.evaluate((tipoCertidao) => {
 			const options = Array.from(document.querySelectorAll('#TipoCertidaoStr option'));
