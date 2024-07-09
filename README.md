@@ -18,7 +18,7 @@ O corpo da requisição deve conter uma chave `data`, que pode ser um array de s
 **Array com um único número:**
 ```json
 {
-  "data": ["67093683000120"]
+  "data": ["12312312000120"]
 }
 ```
 
@@ -93,7 +93,8 @@ Exemplo de Resposta:
   "Não foi possível realizar a consulta. Tente mais tarde." - Dificuldade para encontrar a certidão para esse documento.
   "O número informado não consta do cadastro CNPJ." - Documento não cadastrado no PGFN
   "O número informado não consta do cadastro CPF." - Documento não cadastrado no PGFN
-
+  
+## IMPORTANTE
 Como as requisições envolvem a execução de scraping, que interage com navegadores web, o tempo de resposta pode ser maior que o usual. O timeout padrão de softwares de requisição, como Insomnia ou Postman, pode ser insuficiente para aguardar a conclusão dessas operações.
 ### Recomendações:
     Aumente o Timeout: Ajuste o tempo de timeout do aplicativo conforme o número de documentos passados na requisição.
